@@ -1,8 +1,9 @@
-import { Canvas } from '@react-three/fiber'
-import { useMemo } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { useEffect, useMemo } from 'react'
 
 import { createFrequencyPoints } from '../core/presets'
 import type { PresetId } from '../types/harmonic'
+import { useHarmonicStore } from '../store/useHarmonicStore'
 import { CenterCore } from './CenterCore'
 import { DiskLayer } from './DiskLayer'
 import { FrequencyPointMesh } from './FrequencyPointMesh'
@@ -20,15 +21,42 @@ type HarmonicSceneProps = {
   presetId?: PresetId
 }
 
+function SceneTicker() {
+  const tick = useHarmonicStore((state) => state.tick)
+
+  useFrame((_, delta) => {
+    tick(delta)
+  })
+
+  return null
+}
+
 export function HarmonicScene({ baseFrequency = 110, presetId = 'harmonics' }: HarmonicSceneProps) {
+  const setBaseFrequency = useHarmonicStore((state) => state.setBaseFrequency)
+  const setPreset = useHarmonicStore((state) => state.setPreset)
+  const storeBaseFrequency = useHarmonicStore((state) => state.baseFrequency)
+  const preset = useHarmonicStore((state) => state.preset)
+  const time = useHarmonicStore((state) => state.time)
+  const playbackSpeed = useHarmonicStore((state) => state.playbackSpeed)
+  const displayScale = useHarmonicStore((state) => state.displayScale)
+
+  useEffect(() => {
+    setBaseFrequency(baseFrequency)
+  }, [baseFrequency, setBaseFrequency])
+
+  useEffect(() => {
+    setPreset(presetId)
+  }, [presetId, setPreset])
+
   const points = useMemo(
-    () => createFrequencyPoints(baseFrequency, presetId),
-    [baseFrequency, presetId],
+    () => createFrequencyPoints(storeBaseFrequency, preset),
+    [storeBaseFrequency, preset],
   )
 
   return (
     <div className="harmonic-canvas" aria-label="CD星図 3D scene">
       <Canvas camera={{ position: [3.9, 2.6, 4.6], fov: 42 }}>
+        <SceneTicker />
         <color attach="background" args={['#040814']} />
         <fog attach="fog" args={['#040814', 7, 14]} />
 
@@ -52,6 +80,9 @@ export function HarmonicScene({ baseFrequency = 110, presetId = 'harmonics' }: H
               point={point}
               radius={layer.radius * 0.83}
               y={layer.y}
+              time={time}
+              playbackSpeed={playbackSpeed}
+              displayScale={displayScale}
             />
           )
         })}

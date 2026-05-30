@@ -1,14 +1,26 @@
+import { frequencyToRotationSpeed, positionOnDisk } from '../core/frequencyMath'
 import type { FrequencyPoint } from '../types/harmonic'
 
 type FrequencyPointMeshProps = {
   point: FrequencyPoint
   radius: number
   y: number
+  time: number
+  playbackSpeed: number
+  displayScale: number
 }
 
-export function FrequencyPointMesh({ point, radius, y }: FrequencyPointMeshProps) {
-  const x = Math.cos(point.angle) * radius
-  const z = Math.sin(point.angle) * radius
+export function FrequencyPointMesh({
+  point,
+  radius,
+  y,
+  time,
+  playbackSpeed,
+  displayScale,
+}: FrequencyPointMeshProps) {
+  const rotationSpeed = frequencyToRotationSpeed(point.frequency, displayScale)
+  const currentAngle = point.angle + rotationSpeed * time * playbackSpeed
+  const [x, , z] = positionOnDisk(radius, currentAngle, point.layer, 0)
 
   return (
     <group position={[x, y, z]}>
