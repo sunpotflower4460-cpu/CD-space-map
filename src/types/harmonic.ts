@@ -8,6 +8,14 @@ export type FrequencyPoint = {
   color: string
 }
 
+export type TrailPoint = {
+  pointId: string
+  time: number
+  position: [number, number, number]
+}
+
+export type TrailMap = Record<string, TrailPoint[]>
+
 export type PresetId = 'harmonics' | 'octaves' | 'simpleRatios'
 
 export type AppState = {

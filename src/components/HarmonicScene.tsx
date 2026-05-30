@@ -1,12 +1,14 @@
 import { Canvas, useFrame } from '@react-three/fiber'
 import { useEffect, useMemo } from 'react'
 
+import { getFrequencyPointPosition } from '../core/frequencyMath'
 import { createFrequencyPoints } from '../core/presets'
-import type { PresetId } from '../types/harmonic'
+import type { FrequencyPoint, PresetId, TrailPoint } from '../types/harmonic'
 import { useHarmonicStore } from '../store/useHarmonicStore'
 import { CenterCore } from './CenterCore'
 import { DiskLayer } from './DiskLayer'
 import { FrequencyPointMesh } from './FrequencyPointMesh'
+import { TrailLines } from './TrailLines'
 
 const diskLayers = [
   { layerIndex: 0, radius: 1.55, y: -0.36, opacity: 0.18 },
@@ -21,11 +23,39 @@ type HarmonicSceneProps = {
   presetId?: PresetId
 }
 
-function SceneTicker() {
+type RenderPoint = {
+  point: FrequencyPoint
+  radius: number
+  y: number
+}
+
+function SceneTicker({ renderPoints }: { renderPoints: RenderPoint[] }) {
   const tick = useHarmonicStore((state) => state.tick)
+  const recordTrailSnapshot = useHarmonicStore((state) => state.recordTrailSnapshot)
 
   useFrame((_, delta) => {
+    const state = useHarmonicStore.getState()
+
+    if (!state.isPlaying) {
+      return
+    }
+
+    const currentTime = state.time + delta
+    const trailSnapshot: TrailPoint[] = renderPoints.map(({ point, radius, y }) => ({
+      pointId: point.id,
+      time: currentTime,
+      position: getFrequencyPointPosition(
+        point,
+        radius,
+        y,
+        currentTime,
+        state.playbackSpeed,
+        state.displayScale,
+      ),
+    }))
+
     tick(delta)
+    recordTrailSnapshot(trailSnapshot, currentTime)
   })
 
   return null
@@ -39,6 +69,8 @@ export function HarmonicScene({ baseFrequency = 110, presetId = 'harmonics' }: H
   const time = useHarmonicStore((state) => state.time)
   const playbackSpeed = useHarmonicStore((state) => state.playbackSpeed)
   const displayScale = useHarmonicStore((state) => state.displayScale)
+  const trails = useHarmonicStore((state) => state.trails)
+  const trailDuration = useHarmonicStore((state) => state.trailDuration)
 
   useEffect(() => {
     setBaseFrequency(baseFrequency)
@@ -53,10 +85,27 @@ export function HarmonicScene({ baseFrequency = 110, presetId = 'harmonics' }: H
     [storeBaseFrequency, preset],
   )
 
+  const renderPoints = useMemo(
+    () =>
+      points.flatMap((point) => {
+        const layer = diskLayers[point.layer]
+        if (!layer) {
+          return []
+        }
+
+        return {
+          point,
+          radius: layer.radius * 0.83,
+          y: layer.y,
+        }
+      }),
+    [points],
+  )
+
   return (
     <div className="harmonic-canvas" aria-label="CD星図 3D scene">
       <Canvas camera={{ position: [3.9, 2.6, 4.6], fov: 42 }}>
-        <SceneTicker />
+        <SceneTicker renderPoints={renderPoints} />
         <color attach="background" args={['#040814']} />
         <fog attach="fog" args={['#040814', 7, 14]} />
 
@@ -68,22 +117,26 @@ export function HarmonicScene({ baseFrequency = 110, presetId = 'harmonics' }: H
         {diskLayers.map((layer) => (
           <DiskLayer key={layer.layerIndex} {...layer} />
         ))}
-        {points.map((point) => {
-          const layer = diskLayers[point.layer]
-          if (!layer) {
-            return null
-          }
+        {renderPoints.map(({ point, radius, y }) => {
+          const position = getFrequencyPointPosition(
+            point,
+            radius,
+            y,
+            time,
+            playbackSpeed,
+            displayScale,
+          )
 
           return (
-            <FrequencyPointMesh
-              key={point.id}
-              point={point}
-              radius={layer.radius * 0.83}
-              y={layer.y}
-              time={time}
-              playbackSpeed={playbackSpeed}
-              displayScale={displayScale}
-            />
+            <group key={point.id}>
+              <TrailLines
+                point={point}
+                trails={trails}
+                currentTime={time}
+                trailDuration={trailDuration}
+              />
+              <FrequencyPointMesh point={point} position={position} />
+            </group>
           )
         })}
       </Canvas>
