@@ -101,8 +101,8 @@ export const useHarmonicStore = create<HarmonicStoreState>((set) => ({
     set((state) => {
       if (!state.isPlaying) return state
 
-      // currentTime is the time React just rendered with — trail snapshot positions
-      // were computed at this same time, so point meshes and trail align exactly.
+      // currentTime は React が直前に描画した点と同じ時刻。
+      // trailSnapshot もこの時刻で計算し、次フレーム(nextTime)の点とは履歴として分離する。
       const currentTime = state.time
       const nextTime = state.time + delta
 

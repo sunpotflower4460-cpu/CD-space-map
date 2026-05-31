@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { frequencyToLayerAngle } from '../frequencyMath'
+import { frequencyToLayerAngle, getFrequencyPointPosition } from '../frequencyMath'
 
 /**
  * 数学カーネルのテスト。
@@ -19,6 +19,41 @@ describe('frequencyToLayerAngle', () => {
     expect(h).toBeCloseTo(0)
     expect(layer).toBe(0)
     expect(angle).toBeCloseTo(0)
+  })
+
+  describe('getFrequencyPointPosition', () => {
+    it('長時間再生でも回転角は 2π で正規化される', () => {
+      const point = {
+        id: 'p1',
+        label: 'A',
+        frequency: 440,
+        ratioToBase: 4,
+        layer: 2,
+        angle: Math.PI / 3,
+        color: '#fff',
+      }
+      const radius = 10
+      const y = 2
+      const playbackSpeed = 1.5
+      const displayScale = 440
+      const time = 1_000_000
+
+      const pos = getFrequencyPointPosition(point, radius, y, time, playbackSpeed, displayScale)
+      const period = displayScale / (point.frequency * playbackSpeed)
+      const wrappedTime = time % period
+      const expected = getFrequencyPointPosition(
+        point,
+        radius,
+        y,
+        wrappedTime,
+        playbackSpeed,
+        displayScale,
+      )
+
+      expect(pos[0]).toBeCloseTo(expected[0], 7)
+      expect(pos[1]).toBeCloseTo(expected[1], 7)
+      expect(pos[2]).toBeCloseTo(expected[2], 7)
+    })
   })
 
   it('1オクターブ上 → h=1, layer=1, angle=0', () => {

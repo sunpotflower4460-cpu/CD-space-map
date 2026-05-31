@@ -41,7 +41,7 @@ export function getFrequencyPointPosition(
 ): [number, number, number] {
   const rotationSpeed = frequencyToRotationSpeed(point.frequency, displayScale)
   // mod TWO_PI で長時間再生時の浮動小数点精度劣化を防ぐ
-  const currentAngle = (point.angle + (rotationSpeed * time * playbackSpeed) % TWO_PI)
+  const currentAngle = ((point.angle + rotationSpeed * time * playbackSpeed) % TWO_PI + TWO_PI) % TWO_PI
   const [x, , z] = positionOnDisk(radius, currentAngle, point.layer, 0)
 
   return [x, y, z]

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useHarmonicStore } from '../store/useHarmonicStore'
 
@@ -8,6 +8,17 @@ export function ObservationNotes() {
   const [title, setTitle] = useState('')
   const [note, setNote] = useState('')
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle')
+  const resetSaveStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(
+    () => () => {
+      if (resetSaveStatusTimerRef.current !== null) {
+        clearTimeout(resetSaveStatusTimerRef.current)
+        resetSaveStatusTimerRef.current = null
+      }
+    },
+    [],
+  )
 
   const saveCurrentCondition = () => {
     saveExperimentRun(title, note)
@@ -15,7 +26,13 @@ export function ObservationNotes() {
     setTitle('')
     setNote('')
     setSaveStatus('saved')
-    setTimeout(() => setSaveStatus('idle'), 2000)
+    if (resetSaveStatusTimerRef.current !== null) {
+      clearTimeout(resetSaveStatusTimerRef.current)
+    }
+    resetSaveStatusTimerRef.current = setTimeout(() => {
+      setSaveStatus('idle')
+      resetSaveStatusTimerRef.current = null
+    }, 2000)
   }
 
   return (

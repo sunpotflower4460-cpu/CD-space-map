@@ -33,7 +33,7 @@ export function TrailLines({
   const total = visibleTrail.length - 1
   const bandSize = Math.max(1, Math.ceil(total / NUM_OPACITY_BANDS))
 
-  const bands: Array<{ points: [number, number, number][]; opacity: number }> = []
+  const bands: Array<{ id: number; points: [number, number, number][]; opacity: number }> = []
   for (let b = 0; b < NUM_OPACITY_BANDS; b++) {
     const start = b * bandSize
     const end = Math.min(start + bandSize + 1, visibleTrail.length)
@@ -47,7 +47,7 @@ export function TrailLines({
     const opacity = getTrailOpacity(visibleTrail[midIndex].time, currentTime, trailDuration) * 0.2
 
     if (opacity > 0) {
-      bands.push({ points: bandPoints, opacity })
+      bands.push({ id: b, points: bandPoints, opacity })
     }
   }
 
@@ -57,9 +57,9 @@ export function TrailLines({
 
   return (
     <>
-      {bands.map((band, i) => (
+      {bands.map((band) => (
         <Line
-          key={i}
+          key={`${point.id}-band-${band.id}`}
           points={band.points}
           color={point.color}
           lineWidth={1}

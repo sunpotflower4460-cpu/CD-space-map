@@ -61,10 +61,9 @@ angle=3π/2   → z 軸負方向 (奥)
 `rotationSpeed × time` が非常に大きくなると浮動小数点精度が劣化する可能性があります。実装では回転角を `mod 2π` して数値を安定させています。
 
 ```ts
-currentAngle = (initialAngle + (rotationSpeed * time * playbackSpeed) % (2π))
+currentAngle = (initialAngle + rotationSpeed * time * playbackSpeed) % (2π)
 ```
 
 ## 6) 実験保存の仕様
 
 「この条件を保存」は **観測条件**（基準周波数・プリセット・表示速度など）の保存です。軌跡（過去の位置記録）は保存されません。読み込み後は再生することで新しい軌跡を観測できます。
-
