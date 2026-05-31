@@ -75,6 +75,20 @@ describe('experimentStorage', () => {
     expect(loadExperiments()).toEqual([validRun])
   })
 
+  it('再生条件が不正なデータは除外する', () => {
+    const validRun = createRun({ id: 'run-valid' })
+    const invalidBaseFrequency = createRun({ id: 'run-base', baseFrequency: 0 })
+    const invalidDisplayScale = createRun({ id: 'run-scale', displayScale: Number.POSITIVE_INFINITY })
+    const invalidTrailDuration = createRun({ id: 'run-trail', trailDuration: Number.NaN })
+
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([validRun, invalidBaseFrequency, invalidDisplayScale, invalidTrailDuration]),
+    )
+
+    expect(loadExperiments()).toEqual([validRun])
+  })
+
   it('削除が従来通り動作する', () => {
     saveExperiment(createRun({ id: 'run-1' }))
     saveExperiment(createRun({ id: 'run-2' }))

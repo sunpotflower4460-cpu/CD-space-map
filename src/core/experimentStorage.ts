@@ -3,16 +3,23 @@ import type { ExperimentRun, FrequencyPoint, PresetId } from '../types/harmonic'
 const STORAGE_KEY = 'cd_space_map_experiments_v1'
 const PRESET_IDS: PresetId[] = ['harmonics', 'octaves', 'simpleRatios']
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+}
+
 function isValidFrequencyPoint(item: unknown): item is FrequencyPoint {
   if (!item || typeof item !== 'object') return false
   const point = item as Record<string, unknown>
   return (
     typeof point.id === 'string' &&
     typeof point.label === 'string' &&
-    typeof point.frequency === 'number' &&
-    typeof point.ratioToBase === 'number' &&
-    typeof point.layer === 'number' &&
-    typeof point.angle === 'number' &&
+    isFiniteNumber(point.frequency) &&
+    point.frequency > 0 &&
+    isFiniteNumber(point.ratioToBase) &&
+    point.ratioToBase > 0 &&
+    isFiniteNumber(point.layer) &&
+    Number.isInteger(point.layer) &&
+    isFiniteNumber(point.angle) &&
     typeof point.color === 'string'
   )
 }
@@ -49,12 +56,16 @@ function isValidExperimentRun(item: unknown): item is ExperimentRun {
     typeof run.createdAt === 'string' &&
     typeof run.title === 'string' &&
     typeof run.note === 'string' &&
-    typeof run.baseFrequency === 'number' &&
+    isFiniteNumber(run.baseFrequency) &&
+    run.baseFrequency > 0 &&
     typeof run.preset === 'string' &&
     PRESET_IDS.includes(run.preset as PresetId) &&
-    typeof run.playbackSpeed === 'number' &&
-    typeof run.displayScale === 'number' &&
-    typeof run.trailDuration === 'number' &&
+    isFiniteNumber(run.playbackSpeed) &&
+    run.playbackSpeed > 0 &&
+    isFiniteNumber(run.displayScale) &&
+    run.displayScale > 0 &&
+    isFiniteNumber(run.trailDuration) &&
+    run.trailDuration >= 0 &&
     hasValidPoints
   )
 }
