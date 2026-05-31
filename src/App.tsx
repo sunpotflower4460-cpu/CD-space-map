@@ -1,5 +1,7 @@
 import './App.css'
+import { ExperimentList } from './components/ExperimentList'
 import { HarmonicScene } from './components/HarmonicScene'
+import { ObservationNotes } from './components/ObservationNotes'
 import { PlaybackControls } from './components/PlaybackControls'
 import { ParameterPanel } from './components/ParameterPanel'
 
@@ -16,6 +18,8 @@ function App() {
       <div className="controls-panel">
         <PlaybackControls />
         <ParameterPanel />
+        <ObservationNotes />
+        <ExperimentList />
       </div>
     </main>
   )

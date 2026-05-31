@@ -27,3 +27,16 @@ export type AppState = {
   displayScale: number
   trailDuration: number
 }
+
+export type ExperimentRun = {
+  id: string
+  createdAt: string
+  title: string
+  note: string
+  baseFrequency: number
+  preset: PresetId
+  playbackSpeed: number
+  displayScale: number
+  trailDuration: number
+  points: FrequencyPoint[]
+}

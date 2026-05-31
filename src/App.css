@@ -175,6 +175,106 @@ details[open] .param-details-summary::before {
   margin-top: 0.35rem;
 }
 
+/* ── Observation notes / 保存 ───────────────────────── */
+
+.observation-notes,
+.experiment-list {
+  border-top: 1px solid rgba(167, 188, 232, 0.12);
+  padding-top: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.notes-title {
+  margin: 0;
+  color: #c4d4f0;
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.notes-copy {
+  margin: 0;
+  color: rgba(167, 188, 232, 0.58);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.notes-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.24rem;
+  color: rgba(167, 188, 232, 0.6);
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+}
+
+.notes-input,
+.notes-textarea {
+  width: 100%;
+  border: 1px solid rgba(167, 188, 232, 0.18);
+  background: rgba(167, 188, 232, 0.05);
+  color: #d6e3fa;
+  border-radius: 6px;
+  font: inherit;
+  padding: 0.42rem 0.5rem;
+}
+
+.notes-input:focus,
+.notes-textarea:focus {
+  outline: 1px solid rgba(88, 140, 212, 0.55);
+  border-color: rgba(88, 140, 212, 0.4);
+}
+
+.notes-save-button {
+  align-self: flex-start;
+}
+
+.experiment-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.experiment-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.experiment-item {
+  border: 1px solid rgba(167, 188, 232, 0.14);
+  border-radius: 8px;
+  padding: 0.45rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.experiment-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  color: rgba(167, 188, 232, 0.72);
+  font-size: 0.74rem;
+}
+
+.experiment-main strong {
+  color: #d8e9ff;
+  font-size: 0.8rem;
+}
+
+.experiment-actions {
+  display: flex;
+  gap: 0.3rem;
+}
+
 /* ── Mobile adjustments ─────────────────────────────── */
 
 @media (max-width: 480px) {
@@ -191,5 +291,8 @@ details[open] .param-details-summary::before {
     font-size: 0.88rem;
     padding: 0.5rem 0.9rem;
   }
-}
 
+  .experiment-item {
+    flex-direction: column;
+  }
+}
