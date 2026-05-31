@@ -21,8 +21,6 @@ type HarmonicActions = {
   setPreset: (preset: PresetId) => void
   setTrailDuration: (duration: number) => void
   setTime: (time: number) => void
-  tick: (delta: number) => void
-  recordTrailSnapshot: (trailPoints: TrailPoint[], currentTime: number) => void
   /**
    * 描画時刻と軌跡記録時刻を揃えるための原子的アクション。
    * trailSnapshot は現在の state.time（React が描画した時刻）で計算した位置とし、
@@ -73,30 +71,6 @@ export const useHarmonicStore = create<HarmonicStoreState>((set) => ({
   setPreset: (preset) => set({ preset }),
   setTrailDuration: (trailDuration) => set({ trailDuration }),
   setTime: (time) => set({ time }),
-  tick: (delta) =>
-    set((state) =>
-      state.isPlaying
-        ? {
-            time: state.time + delta,
-          }
-        : state,
-    ),
-  recordTrailSnapshot: (trailPoints, currentTime) =>
-    set((state) => {
-      if (!shouldSampleTrail(state.lastTrailSampleTime, currentTime)) {
-        return state
-      }
-
-      return {
-        trails: appendTrailSnapshot(
-          state.trails,
-          trailPoints,
-          currentTime,
-          state.trailDuration,
-        ),
-        lastTrailSampleTime: currentTime,
-      }
-    }),
   advanceTick: (delta, trailSnapshot) =>
     set((state) => {
       if (!state.isPlaying) return state
