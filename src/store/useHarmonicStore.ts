@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 
-import type { AppState, PresetId } from '../types/harmonic'
+import { appendTrailSnapshot, shouldSampleTrail } from '../core/trailMath'
+import type { AppState, PresetId, TrailMap, TrailPoint } from '../types/harmonic'
 
 type HarmonicActions = {
   play: () => void
@@ -12,9 +13,14 @@ type HarmonicActions = {
   setPreset: (preset: PresetId) => void
   setTime: (time: number) => void
   tick: (delta: number) => void
+  recordTrailSnapshot: (trailPoints: TrailPoint[], currentTime: number) => void
+  clearTrails: () => void
 }
 
-type HarmonicStoreState = AppState & HarmonicActions
+type HarmonicStoreState = AppState & {
+  trails: TrailMap
+  lastTrailSampleTime: number | null
+} & HarmonicActions
 
 export const useHarmonicStore = create<HarmonicStoreState>((set) => ({
   baseFrequency: 110,
@@ -24,9 +30,11 @@ export const useHarmonicStore = create<HarmonicStoreState>((set) => ({
   playbackSpeed: 1,
   displayScale: 440,
   trailDuration: 3,
+  trails: {},
+  lastTrailSampleTime: null,
   play: () => set({ isPlaying: true }),
   pause: () => set({ isPlaying: false }),
-  rewind: () => set({ time: 0 }),
+  rewind: () => set({ time: 0, trails: {}, lastTrailSampleTime: null }),
   setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
   setDisplayScale: (displayScale) => set({ displayScale }),
   setBaseFrequency: (baseFrequency) => set({ baseFrequency }),
@@ -40,4 +48,21 @@ export const useHarmonicStore = create<HarmonicStoreState>((set) => ({
           }
         : state,
     ),
+  recordTrailSnapshot: (trailPoints, currentTime) =>
+    set((state) => {
+      if (!shouldSampleTrail(state.lastTrailSampleTime, currentTime)) {
+        return state
+      }
+
+      return {
+        trails: appendTrailSnapshot(
+          state.trails,
+          trailPoints,
+          currentTime,
+          state.trailDuration,
+        ),
+        lastTrailSampleTime: currentTime,
+      }
+    }),
+  clearTrails: () => set({ trails: {}, lastTrailSampleTime: null }),
 }))
