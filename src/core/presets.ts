@@ -18,6 +18,9 @@ const presets: Record<PresetId, PresetEntry[]> = {
     { ratio: 8, label: '8f' },
   ],
   octaves: [
+    { ratio: 1 / 8, label: '1/8f' },
+    { ratio: 1 / 4, label: '1/4f' },
+    { ratio: 1 / 2, label: '1/2f' },
     { ratio: 1, label: '1f' },
     { ratio: 2, label: '2f' },
     { ratio: 4, label: '4f' },
