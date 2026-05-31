@@ -1,5 +1,10 @@
+import { Line } from '@react-three/drei'
+
 import { getTrailOpacity, pruneTrail } from '../core/trailMath'
 import type { FrequencyPoint, TrailMap } from '../types/harmonic'
+
+/** グラデーション表現のために軌跡を分割するバンド数 */
+const NUM_OPACITY_BANDS = 4
 
 type TrailLinesProps = {
   point: FrequencyPoint
@@ -8,6 +13,10 @@ type TrailLinesProps = {
   trailDuration: number
 }
 
+/**
+ * 各点の軌跡を1つのポリライン（または少数のバンド）として描画する。
+ * セグメントごとに個別 Line を作成する方式を廃止し、ドローコールを削減している。
+ */
 export function TrailLines({
   point,
   trails,
@@ -20,35 +29,45 @@ export function TrailLines({
     return null
   }
 
+  // 軌跡をバンドに分割して不透明度グラデーションを表現する
+  const total = visibleTrail.length - 1
+  const bandSize = Math.max(1, Math.ceil(total / NUM_OPACITY_BANDS))
+
+  const bands: Array<{ points: [number, number, number][]; opacity: number }> = []
+  for (let b = 0; b < NUM_OPACITY_BANDS; b++) {
+    const start = b * bandSize
+    const end = Math.min(start + bandSize + 1, visibleTrail.length)
+    if (end - start < 2) continue
+
+    const bandPoints = visibleTrail
+      .slice(start, end)
+      .map((tp) => tp.position as [number, number, number])
+
+    const midIndex = Math.floor((start + end - 1) / 2)
+    const opacity = getTrailOpacity(visibleTrail[midIndex].time, currentTime, trailDuration) * 0.2
+
+    if (opacity > 0) {
+      bands.push({ points: bandPoints, opacity })
+    }
+  }
+
+  if (bands.length === 0) {
+    return null
+  }
+
   return (
-    <group>
-      {visibleTrail.slice(1).map((trailPoint, index) => {
-        const start = visibleTrail[index]
-        const opacity = getTrailOpacity(trailPoint.time, currentTime, trailDuration) * 0.2
-
-        if (opacity <= 0) {
-          return null
-        }
-
-        return (
-          <line key={`${point.id}-${trailPoint.time}-${index}`}>
-            <bufferGeometry>
-              <bufferAttribute
-                attach="attributes-position"
-                args={[new Float32Array([...start.position, ...trailPoint.position]), 3]}
-                count={2}
-                itemSize={3}
-              />
-            </bufferGeometry>
-            <lineBasicMaterial
-              color={point.color}
-              transparent
-              opacity={opacity}
-              depthWrite={false}
-            />
-          </line>
-        )
-      })}
-    </group>
+    <>
+      {bands.map((band, i) => (
+        <Line
+          key={i}
+          points={band.points}
+          color={point.color}
+          lineWidth={1}
+          opacity={band.opacity}
+          transparent
+          depthWrite={false}
+        />
+      ))}
+    </>
   )
 }

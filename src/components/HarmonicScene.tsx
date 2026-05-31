@@ -1,26 +1,27 @@
 import { Canvas, useFrame } from '@react-three/fiber'
-import { useEffect, useMemo } from 'react'
+import { OrbitControls } from '@react-three/drei'
+import { useMemo } from 'react'
 
 import { getFrequencyPointPosition } from '../core/frequencyMath'
 import { createFrequencyPoints } from '../core/presets'
-import type { FrequencyPoint, PresetId, TrailPoint } from '../types/harmonic'
+import type { FrequencyPoint, TrailPoint } from '../types/harmonic'
 import { useHarmonicStore } from '../store/useHarmonicStore'
 import { CenterCore } from './CenterCore'
 import { DiskLayer } from './DiskLayer'
 import { FrequencyPointMesh } from './FrequencyPointMesh'
 import { TrailLines } from './TrailLines'
 
-const diskLayers = [
-  { layerIndex: 0, radius: 1.55, y: -0.36, opacity: 0.18 },
-  { layerIndex: 1, radius: 1.42, y: -0.12, opacity: 0.22 },
-  { layerIndex: 2, radius: 1.28, y: 0.14, opacity: 0.25 },
-  { layerIndex: 3, radius: 1.12, y: 0.38, opacity: 0.28 },
-  { layerIndex: 4, radius: 0.96, y: 0.62, opacity: 0.3 },
-]
-
-type HarmonicSceneProps = {
-  baseFrequency?: number
-  presetId?: PresetId
+/** ディスク層の視覚パラメータを必要なレイヤー数に応じて動的に生成する */
+function generateDiskLayers(count: number) {
+  return Array.from({ length: count }, (_, i) => {
+    const t = count > 1 ? i / (count - 1) : 0
+    return {
+      layerIndex: i,
+      radius: 1.55 - t * 0.59,
+      y: -0.36 + t * 0.98,
+      opacity: 0.18 + t * 0.12,
+    }
+  })
 }
 
 type RenderPoint = {
@@ -30,8 +31,7 @@ type RenderPoint = {
 }
 
 function SceneTicker({ renderPoints }: { renderPoints: RenderPoint[] }) {
-  const tick = useHarmonicStore((state) => state.tick)
-  const recordTrailSnapshot = useHarmonicStore((state) => state.recordTrailSnapshot)
+  const advanceTick = useHarmonicStore((state) => state.advanceTick)
 
   useFrame((_, delta) => {
     const state = useHarmonicStore.getState()
@@ -40,30 +40,29 @@ function SceneTicker({ renderPoints }: { renderPoints: RenderPoint[] }) {
       return
     }
 
-    const currentTime = state.time + delta
+    // 描画時刻と記録時刻を揃えるため、現在の state.time（React が描画した時刻）で
+    // 軌跡スナップショットを計算し、advanceTick で原子的に time を進める。
     const trailSnapshot: TrailPoint[] = renderPoints.map(({ point, radius, y }) => ({
       pointId: point.id,
-      time: currentTime,
+      time: state.time,
       position: getFrequencyPointPosition(
         point,
         radius,
         y,
-        currentTime,
+        state.time,
         state.playbackSpeed,
         state.displayScale,
       ),
     }))
 
-    tick(delta)
-    recordTrailSnapshot(trailSnapshot, currentTime)
+    advanceTick(delta, trailSnapshot)
   })
 
   return null
 }
 
-export function HarmonicScene({ baseFrequency = 110, presetId = 'harmonics' }: HarmonicSceneProps) {
-  const setBaseFrequency = useHarmonicStore((state) => state.setBaseFrequency)
-  const setPreset = useHarmonicStore((state) => state.setPreset)
+/** HarmonicScene は store を唯一の真実の源として使用する。初期値は store 側に集約。 */
+export function HarmonicScene() {
   const storeBaseFrequency = useHarmonicStore((state) => state.baseFrequency)
   const preset = useHarmonicStore((state) => state.preset)
   const time = useHarmonicStore((state) => state.time)
@@ -72,24 +71,24 @@ export function HarmonicScene({ baseFrequency = 110, presetId = 'harmonics' }: H
   const trails = useHarmonicStore((state) => state.trails)
   const trailDuration = useHarmonicStore((state) => state.trailDuration)
 
-  useEffect(() => {
-    setBaseFrequency(baseFrequency)
-  }, [baseFrequency, setBaseFrequency])
-
-  useEffect(() => {
-    setPreset(presetId)
-  }, [presetId, setPreset])
-
   const points = useMemo(
     () => createFrequencyPoints(storeBaseFrequency, preset),
     [storeBaseFrequency, preset],
   )
 
+  const maxLayer = useMemo(() => Math.max(0, ...points.map((p) => p.layer)), [points])
+  const diskLayers = useMemo(() => generateDiskLayers(maxLayer + 1), [maxLayer])
+
   const renderPoints = useMemo(
     () =>
       points.flatMap((point) => {
+        if (point.layer < 0) {
+          console.warn(`Point "${point.id}" has layer ${point.layer} < 0 and will not be displayed`)
+          return []
+        }
         const layer = diskLayers[point.layer]
         if (!layer) {
+          console.warn(`Point "${point.id}" has layer ${point.layer} but only ${diskLayers.length} disk layers exist`)
           return []
         }
 
@@ -99,7 +98,7 @@ export function HarmonicScene({ baseFrequency = 110, presetId = 'harmonics' }: H
           y: layer.y,
         }
       }),
-    [points],
+    [points, diskLayers],
   )
 
   return (
@@ -112,6 +111,8 @@ export function HarmonicScene({ baseFrequency = 110, presetId = 'harmonics' }: H
         <ambientLight intensity={0.38} color="#a7bce8" />
         <directionalLight position={[4.5, 5, 2.5]} intensity={0.6} color="#d8e9ff" />
         <pointLight position={[-3, 2.5, -4]} intensity={0.2} color="#588cd4" />
+
+        <OrbitControls makeDefault enablePan={false} />
 
         <CenterCore />
         {diskLayers.map((layer) => (

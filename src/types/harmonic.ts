@@ -29,6 +29,8 @@ export type AppState = {
 }
 
 export type ExperimentRun = {
+  /** スキーマバージョン。将来の保存形式変更に備えるためのフィールド。 */
+  version?: 1
   id: string
   createdAt: string
   title: string

@@ -18,6 +18,22 @@ function writeExperiments(experiments: ExperimentRun[]) {
   }
 }
 
+/** 最低限のschema validationでExperimentRunとして安全に扱えるか確認する */
+function isValidExperimentRun(item: unknown): item is ExperimentRun {
+  if (!item || typeof item !== 'object') return false
+  const run = item as Record<string, unknown>
+  return (
+    typeof run.id === 'string' &&
+    typeof run.createdAt === 'string' &&
+    typeof run.title === 'string' &&
+    typeof run.baseFrequency === 'number' &&
+    typeof run.preset === 'string' &&
+    typeof run.playbackSpeed === 'number' &&
+    typeof run.displayScale === 'number' &&
+    typeof run.trailDuration === 'number'
+  )
+}
+
 export function loadExperiments(): ExperimentRun[] {
   if (!canUseLocalStorage()) {
     return []
@@ -30,7 +46,10 @@ export function loadExperiments(): ExperimentRun[] {
     }
 
     const parsed = JSON.parse(raw) as unknown
-    return Array.isArray(parsed) ? (parsed as ExperimentRun[]) : []
+    if (!Array.isArray(parsed)) return []
+
+    // 壊れたエントリは無視し、有効なもののみ返す
+    return parsed.filter(isValidExperimentRun)
   } catch {
     return []
   }

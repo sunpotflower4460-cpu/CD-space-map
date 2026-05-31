@@ -1,10 +1,12 @@
 import type { FrequencyPoint } from '../types/harmonic'
 
+const TWO_PI = Math.PI * 2
+
 export function frequencyToLayerAngle(frequency: number, baseFrequency: number) {
   const h = Math.log2(frequency / baseFrequency)
   const layer = Math.floor(h)
   const frac = h - layer
-  const angle = frac * Math.PI * 2
+  const angle = frac * TWO_PI
 
   return { h, layer, angle }
 }
@@ -13,7 +15,7 @@ export function frequencyToRotationSpeed(
   frequency: number,
   displayScale: number,
 ) {
-  return (frequency / displayScale) * Math.PI * 2
+  return (frequency / displayScale) * TWO_PI
 }
 
 export function positionOnDisk(
@@ -38,7 +40,8 @@ export function getFrequencyPointPosition(
   displayScale: number,
 ): [number, number, number] {
   const rotationSpeed = frequencyToRotationSpeed(point.frequency, displayScale)
-  const currentAngle = point.angle + rotationSpeed * time * playbackSpeed
+  // mod TWO_PI で長時間再生時の浮動小数点精度劣化を防ぐ
+  const currentAngle = (point.angle + (rotationSpeed * time * playbackSpeed) % TWO_PI)
   const [x, , z] = positionOnDisk(radius, currentAngle, point.layer, 0)
 
   return [x, y, z]
