@@ -11,6 +11,7 @@ type HarmonicActions = {
   setDisplayScale: (scale: number) => void
   setBaseFrequency: (frequency: number) => void
   setPreset: (preset: PresetId) => void
+  setTrailDuration: (duration: number) => void
   setTime: (time: number) => void
   tick: (delta: number) => void
   recordTrailSnapshot: (trailPoints: TrailPoint[], currentTime: number) => void
@@ -39,6 +40,7 @@ export const useHarmonicStore = create<HarmonicStoreState>((set) => ({
   setDisplayScale: (displayScale) => set({ displayScale }),
   setBaseFrequency: (baseFrequency) => set({ baseFrequency }),
   setPreset: (preset) => set({ preset }),
+  setTrailDuration: (trailDuration) => set({ trailDuration }),
   setTime: (time) => set({ time }),
   tick: (delta) =>
     set((state) =>
