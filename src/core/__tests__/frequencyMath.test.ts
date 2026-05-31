@@ -22,20 +22,21 @@ describe('frequencyToLayerAngle', () => {
   })
 
   describe('getFrequencyPointPosition', () => {
+    const point = {
+      id: 'p1',
+      label: 'A',
+      frequency: 440,
+      ratioToBase: 4,
+      layer: 2,
+      angle: Math.PI / 3,
+      color: '#fff',
+    }
+    const radius = 10
+    const y = 2
+    const playbackSpeed = 1.5
+    const displayScale = 440
+
     it('長時間再生でも回転角は 2π で正規化される', () => {
-      const point = {
-        id: 'p1',
-        label: 'A',
-        frequency: 440,
-        ratioToBase: 4,
-        layer: 2,
-        angle: Math.PI / 3,
-        color: '#fff',
-      }
-      const radius = 10
-      const y = 2
-      const playbackSpeed = 1.5
-      const displayScale = 440
       const time = 1_000_000
 
       const pos = getFrequencyPointPosition(point, radius, y, time, playbackSpeed, displayScale)
@@ -53,6 +54,33 @@ describe('frequencyToLayerAngle', () => {
       expect(pos[0]).toBeCloseTo(expected[0], 7)
       expect(pos[1]).toBeCloseTo(expected[1], 7)
       expect(pos[2]).toBeCloseTo(expected[2], 7)
+    })
+
+    it('負方向の初期角度も [0, 2π) 相当で扱われる', () => {
+      const negativeAnglePoint = { ...point, angle: -Math.PI / 3 }
+      const wrappedAnglePoint = { ...point, angle: (negativeAnglePoint.angle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) }
+      const time = 1234.5
+
+      const posFromNegative = getFrequencyPointPosition(
+        negativeAnglePoint,
+        radius,
+        y,
+        time,
+        playbackSpeed,
+        displayScale,
+      )
+      const posFromWrapped = getFrequencyPointPosition(
+        wrappedAnglePoint,
+        radius,
+        y,
+        time,
+        playbackSpeed,
+        displayScale,
+      )
+
+      expect(posFromNegative[0]).toBeCloseTo(posFromWrapped[0], 7)
+      expect(posFromNegative[1]).toBeCloseTo(posFromWrapped[1], 7)
+      expect(posFromNegative[2]).toBeCloseTo(posFromWrapped[2], 7)
     })
   })
 
@@ -98,5 +126,26 @@ describe('frequencyToLayerAngle', () => {
       expect(angle).toBeGreaterThanOrEqual(0)
       expect(angle).toBeLessThan(Math.PI * 2)
     }
+  })
+
+  describe('不正入力', () => {
+    it('frequency <= 0 は throw', () => {
+      expect(() => frequencyToLayerAngle(0, f0)).toThrow(RangeError)
+      expect(() => frequencyToLayerAngle(-1, f0)).toThrow(RangeError)
+    })
+
+    it('baseFrequency <= 0 は throw', () => {
+      expect(() => frequencyToLayerAngle(f0, 0)).toThrow(RangeError)
+      expect(() => frequencyToLayerAngle(f0, -1)).toThrow(RangeError)
+    })
+
+    it('NaN / Infinity は throw', () => {
+      const invalidValues = [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]
+
+      for (const invalid of invalidValues) {
+        expect(() => frequencyToLayerAngle(invalid, f0)).toThrow(RangeError)
+        expect(() => frequencyToLayerAngle(f0, invalid)).toThrow(RangeError)
+      }
+    })
   })
 })
