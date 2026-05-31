@@ -42,3 +42,9 @@ npm run dev
 \`\`\`bash
 npm run build
 \`\`\`
+
+テスト:
+
+\`\`\`bash
+npm test
+\`\`\`
