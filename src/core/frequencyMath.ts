@@ -2,7 +2,17 @@ import type { FrequencyPoint } from '../types/harmonic'
 
 const TWO_PI = Math.PI * 2
 
+function assertFinitePositiveNumber(value: number, name: string) {
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new RangeError(`${name} must be a finite positive number`)
+  }
+}
+
 export function frequencyToLayerAngle(frequency: number, baseFrequency: number) {
+  // 数学カーネル側で入力を検証し、不正値は明示的に reject する
+  assertFinitePositiveNumber(frequency, 'frequency')
+  assertFinitePositiveNumber(baseFrequency, 'baseFrequency')
+
   const h = Math.log2(frequency / baseFrequency)
   const layer = Math.floor(h)
   const frac = h - layer
@@ -15,6 +25,9 @@ export function frequencyToRotationSpeed(
   frequency: number,
   displayScale: number,
 ) {
+  assertFinitePositiveNumber(frequency, 'frequency')
+  assertFinitePositiveNumber(displayScale, 'displayScale')
+
   return (frequency / displayScale) * TWO_PI
 }
 
