@@ -3,6 +3,7 @@ import { OrbitControls } from '@react-three/drei'
 import { useMemo } from 'react'
 
 import { getFrequencyPointPosition } from '../core/frequencyMath'
+import { generateDiskLayers, getLayerBounds } from '../core/layerLayout'
 import { createFrequencyPoints } from '../core/presets'
 import type { FrequencyPoint, TrailPoint } from '../types/harmonic'
 import { useHarmonicStore } from '../store/useHarmonicStore'
@@ -10,19 +11,6 @@ import { CenterCore } from './CenterCore'
 import { DiskLayer } from './DiskLayer'
 import { FrequencyPointMesh } from './FrequencyPointMesh'
 import { TrailLines } from './TrailLines'
-
-/** ディスク層の視覚パラメータを必要なレイヤー数に応じて動的に生成する */
-function generateDiskLayers(count: number) {
-  return Array.from({ length: count }, (_, i) => {
-    const t = count > 1 ? i / (count - 1) : 0
-    return {
-      layerIndex: i,
-      radius: 1.55 - t * 0.59,
-      y: -0.36 + t * 0.98,
-      opacity: 0.18 + t * 0.12,
-    }
-  })
-}
 
 type RenderPoint = {
   point: FrequencyPoint
@@ -76,19 +64,21 @@ export function HarmonicScene() {
     [storeBaseFrequency, preset],
   )
 
-  const maxLayer = useMemo(() => Math.max(0, ...points.map((p) => p.layer)), [points])
-  const diskLayers = useMemo(() => generateDiskLayers(maxLayer + 1), [maxLayer])
+  const { minLayer, maxLayer } = useMemo(() => getLayerBounds(points), [points])
+  const diskLayers = useMemo(() => generateDiskLayers(minLayer, maxLayer), [minLayer, maxLayer])
+  const diskLayerMap = useMemo(
+    () => new Map(diskLayers.map((layer) => [layer.layerIndex, layer])),
+    [diskLayers],
+  )
 
   const renderPoints = useMemo(
     () =>
       points.flatMap((point) => {
-        if (point.layer < 0) {
-          console.warn(`Point "${point.id}" has layer ${point.layer} < 0 and will not be displayed`)
-          return []
-        }
-        const layer = diskLayers[point.layer]
+        const layer = diskLayerMap.get(point.layer)
         if (!layer) {
-          console.warn(`Point "${point.id}" has layer ${point.layer} but only ${diskLayers.length} disk layers exist`)
+          console.warn(
+            `Point "${point.id}" has layer ${point.layer} but disk layers only cover ${minLayer}..${maxLayer}`,
+          )
           return []
         }
 
@@ -98,7 +88,7 @@ export function HarmonicScene() {
           y: layer.y,
         }
       }),
-    [points, diskLayers],
+    [points, diskLayerMap, minLayer, maxLayer],
   )
 
   return (

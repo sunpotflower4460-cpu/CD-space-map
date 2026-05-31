@@ -119,8 +119,27 @@ describe('frequencyToLayerAngle', () => {
     expect(angle).toBeCloseTo(expectedAngle)
   })
 
+  it('1オクターブ下 → h=-1, layer=-1, angle=0', () => {
+    const { h, layer, angle } = frequencyToLayerAngle(f0 / 2, f0)
+    expect(h).toBeCloseTo(-1)
+    expect(layer).toBe(-1)
+    expect(angle).toBeCloseTo(0)
+  })
+
+  it('基準より低い周波数も frac(log2(f/f0)) に従って角度を保つ', () => {
+    const ratio = 3 / 4
+    const { h, layer, angle } = frequencyToLayerAngle(f0 * ratio, f0)
+    const expectedH = Math.log2(ratio)
+    const expectedLayer = Math.floor(expectedH)
+    const expectedAngle = (expectedH - expectedLayer) * Math.PI * 2
+
+    expect(h).toBeCloseTo(expectedH)
+    expect(layer).toBe(expectedLayer)
+    expect(angle).toBeCloseTo(expectedAngle)
+  })
+
   it('angle は常に [0, 2π) の範囲', () => {
-    const cases = [1, 2, 3, 4, 5, 6, 7, 8, 3 / 2, 5 / 4, 4 / 3, 7 / 4]
+    const cases = [1 / 8, 1 / 2, 3 / 4, 1, 2, 3, 4, 5, 6, 7, 8, 3 / 2, 5 / 4, 4 / 3, 7 / 4]
     for (const ratio of cases) {
       const { angle } = frequencyToLayerAngle(f0 * ratio, f0)
       expect(angle).toBeGreaterThanOrEqual(0)
