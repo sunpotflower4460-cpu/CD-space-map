@@ -1,50 +1,78 @@
-# CD-space-map
+# CD-space-map / CD星図 / Harmonic Disk
 
-CD星図 / Harmonic Disk は、周波数の関係を、立体の円盤・回転・軌跡として観測するアプリです。
+[![CI](https://github.com/sunpotflower4460-cpu/CD-space-map/actions/workflows/ci.yml/badge.svg)](https://github.com/sunpotflower4460-cpu/CD-space-map/actions/workflows/ci.yml)
+
+周波数の関係を、立体の円盤・回転・軌跡として観測するアプリです。
+
+## 何を観測するアプリか
+
+複数の周波数点が、基準周波数を中心に円盤の上を回転します。  
+1周がちょうど1オクターブに対応し、周波数比は常に正確に保たれます。  
+点の軌跡は時間の記憶として残り、周波数どうしの関係を視覚的に確認できます。
 
 ## MVPの核
 
-- 中心は変わらない
-- 1周 = 1オクターブ
-- 周波数比は正確に保つ
-- 軌跡は時間の記憶
+| 原則 | 意味 |
+|------|------|
+| 中心は変わらない | 基準周波数を固定した不変点 |
+| 1周 = 1オクターブ | 角度が周波数の対数比に対応する |
+| 周波数比は正確に保つ | 表示ズレなく数学的に正確な配置 |
+| 軌跡は時間の記憶 | 点の軌跡が過去の動きを可視化する |
+| 観測メモで再現性を残す | 条件を保存して後から参照できる |
 
-## 実装順
+## 画面の見方
 
-- Phase -1: プロジェクト初期化
-- Phase 0: 原則と数学カーネル
-- Phase 1: 中心点と複数ディスク
-- Phase 2: 周波数点配置
-- Phase 3: 正確な比率回転
-- Phase 4: 軌跡表示
-- Phase 5: 観測操作UI
-- Phase 6: 観測メモ保存
+| 要素 | 説明 |
+|------|------|
+| 中心点（コア） | 固定された基準点。動かない |
+| ディスク（円盤） | 各オクターブ層に対応する円盤 |
+| 周波数点 | 各周波数を表す点。周波数比に基づいて回転する |
+| 軌跡 | 点が残す時間的な痕跡 |
+
+## 主な機能
+
+- 複数ディスクの3D表示（OrbitControls でドラッグ回転・ズーム可）
+- 周波数点の配置（倍音 / オクターブ / 単純比 プリセット）
+- 周波数比に基づく正確な回転
+- 軌跡表示（長さ調整可）
+- 再生 / 停止 / 巻き戻し
+- 基準周波数の切替（55 / 110 / 220 / 440 Hz）
+- 表示速度の切替（0.25x / 0.5x / 1x / 2x）
+- 観測メモ保存（タイトル・メモを localStorage に記録）
+- 実験リスト（保存した条件の読み込み・削除・JSON エクスポート）
 
 ## 技術スタック
 
-- Vite
-- React
-- TypeScript
-- Three.js
-- React Three Fiber
-- @react-three/drei
-- Zustand
+- [Vite](https://vitejs.dev/)
+- [React](https://react.dev/) 19
+- [TypeScript](https://www.typescriptlang.org/)
+- [Three.js](https://threejs.org/) + [React Three Fiber](https://docs.pmnd.rs/react-three-fiber)
+- [@react-three/drei](https://github.com/pmndrs/drei)
+- [Zustand](https://zustand-demo.pmnd.rs/)
 
-## 起動方法
+## 開発コマンド
 
-\`\`\`bash
+```bash
+# 依存関係のインストール
 npm install
+
+# 開発サーバーの起動
 npm run dev
-\`\`\`
 
-ビルド:
-
-\`\`\`bash
+# プロダクションビルド
 npm run build
-\`\`\`
 
-テスト:
-
-\`\`\`bash
+# テスト（vitest）
 npm test
-\`\`\`
+
+# リント（ESLint）
+npm run lint
+```
+
+## デモ
+
+現在準備中です。
+
+## スクリーンショット
+
+現在準備中です。
