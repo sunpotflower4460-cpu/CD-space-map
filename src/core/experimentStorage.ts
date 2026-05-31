@@ -40,6 +40,9 @@ function isValidExperimentRun(item: unknown): item is ExperimentRun {
   const version = run.version
   // version===1 は現行、version==null は legacy(v0)として許可。その他は未対応として除外。
   const isSupportedVersion = version === 1 || version == null
+  const hasValidPoints =
+    run.points == null || (Array.isArray(run.points) && run.points.every(isValidFrequencyPoint))
+
   return (
     isSupportedVersion &&
     typeof run.id === 'string' &&
@@ -52,8 +55,7 @@ function isValidExperimentRun(item: unknown): item is ExperimentRun {
     typeof run.playbackSpeed === 'number' &&
     typeof run.displayScale === 'number' &&
     typeof run.trailDuration === 'number' &&
-    Array.isArray(run.points) &&
-    run.points.every(isValidFrequencyPoint)
+    hasValidPoints
   )
 }
 

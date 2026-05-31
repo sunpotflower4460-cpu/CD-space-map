@@ -6,7 +6,6 @@ import {
   loadExperiments,
   saveExperiment,
 } from '../core/experimentStorage'
-import { createFrequencyPoints } from '../core/presets'
 import { appendTrailSnapshot, shouldSampleTrail } from '../core/trailMath'
 import type { AppState, ExperimentRun, PresetId, TrailMap, TrailPoint } from '../types/harmonic'
 
@@ -104,7 +103,6 @@ export const useHarmonicStore = create<HarmonicStoreState>((set) => ({
         playbackSpeed: state.playbackSpeed,
         displayScale: state.displayScale,
         trailDuration: state.trailDuration,
-        points: createFrequencyPoints(state.baseFrequency, state.preset),
       }
 
       saveExperiment(run)

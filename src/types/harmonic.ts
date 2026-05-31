@@ -40,5 +40,5 @@ export type ExperimentRun = {
   playbackSpeed: number
   displayScale: number
   trailDuration: number
-  points: FrequencyPoint[]
+  points?: FrequencyPoint[]
 }
