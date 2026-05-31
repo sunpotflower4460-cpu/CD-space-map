@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useHarmonicStore } from '../store/useHarmonicStore'
 
@@ -7,18 +7,42 @@ export function ObservationNotes() {
   const loadExperimentRuns = useHarmonicStore((s) => s.loadExperimentRuns)
   const [title, setTitle] = useState('')
   const [note, setNote] = useState('')
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved'>('idle')
+  const resetSaveStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(
+    () => () => {
+      if (resetSaveStatusTimerRef.current !== null) {
+        clearTimeout(resetSaveStatusTimerRef.current)
+        resetSaveStatusTimerRef.current = null
+      }
+    },
+    [],
+  )
 
   const saveCurrentCondition = () => {
     saveExperimentRun(title, note)
     loadExperimentRuns()
     setTitle('')
     setNote('')
+    setSaveStatus('saved')
+    if (resetSaveStatusTimerRef.current !== null) {
+      clearTimeout(resetSaveStatusTimerRef.current)
+    }
+    resetSaveStatusTimerRef.current = setTimeout(() => {
+      setSaveStatus('idle')
+      resetSaveStatusTimerRef.current = null
+    }, 2000)
   }
 
   return (
     <section className="observation-notes">
       <h2 className="notes-title">観測メモ</h2>
-      <p className="notes-copy">今、何が見えた？ どの軌跡が気になった？ どの比率が美しく見えた？</p>
+      <p className="notes-copy">
+        今、何が見えた？ どの軌跡が気になった？ どの比率が美しく見えた？
+        <br />
+        <small>保存は「観測条件」の記録です。軌跡は保存されません。</small>
+      </p>
       <label className="notes-label">
         タイトル
         <input
@@ -40,7 +64,7 @@ export function ObservationNotes() {
         />
       </label>
       <button className="param-btn notes-save-button" onClick={saveCurrentCondition}>
-        この条件を保存
+        {saveStatus === 'saved' ? '✓ 保存しました' : 'この条件を保存'}
       </button>
     </section>
   )

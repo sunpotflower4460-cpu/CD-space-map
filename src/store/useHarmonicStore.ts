@@ -13,6 +13,7 @@ import type { AppState, ExperimentRun, PresetId, TrailMap, TrailPoint } from '..
 type HarmonicActions = {
   play: () => void
   pause: () => void
+  /** 再生を停止して時刻・軌跡を初期状態に戻す (Option A: stop-and-rewind) */
   rewind: () => void
   setPlaybackSpeed: (speed: number) => void
   setDisplayScale: (scale: number) => void
@@ -22,6 +23,12 @@ type HarmonicActions = {
   setTime: (time: number) => void
   tick: (delta: number) => void
   recordTrailSnapshot: (trailPoints: TrailPoint[], currentTime: number) => void
+  /**
+   * 描画時刻と軌跡記録時刻を揃えるための原子的アクション。
+   * trailSnapshot は現在の state.time（React が描画した時刻）で計算した位置とし、
+   * この呼び出しで time を delta だけ進める。
+   */
+  advanceTick: (delta: number, trailSnapshot: TrailPoint[]) => void
   clearTrails: () => void
   saveExperimentRun: (title: string, note: string) => void
   loadExperimentRuns: () => void
@@ -40,7 +47,8 @@ function createRunId() {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return crypto.randomUUID()
   }
-  return `run-${Date.now()}`
+  // Append random suffix to reduce collision risk in environments without crypto.randomUUID
+  return `run-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
 export const useHarmonicStore = create<HarmonicStoreState>((set) => ({
@@ -53,10 +61,12 @@ export const useHarmonicStore = create<HarmonicStoreState>((set) => ({
   trailDuration: 3,
   trails: {},
   lastTrailSampleTime: null,
-  experiments: loadExperiments(),
+  // Start empty; ExperimentList loads from localStorage on mount
+  experiments: [],
   play: () => set({ isPlaying: true }),
   pause: () => set({ isPlaying: false }),
-  rewind: () => set({ time: 0, trails: {}, lastTrailSampleTime: null }),
+  // Option A: stop playback and return to initial position
+  rewind: () => set({ isPlaying: false, time: 0, trails: {}, lastTrailSampleTime: null }),
   setPlaybackSpeed: (playbackSpeed) => set({ playbackSpeed }),
   setDisplayScale: (displayScale) => set({ displayScale }),
   setBaseFrequency: (baseFrequency) => set({ baseFrequency }),
@@ -87,10 +97,30 @@ export const useHarmonicStore = create<HarmonicStoreState>((set) => ({
         lastTrailSampleTime: currentTime,
       }
     }),
+  advanceTick: (delta, trailSnapshot) =>
+    set((state) => {
+      if (!state.isPlaying) return state
+
+      // currentTime は React が直前に描画した点と同じ時刻。
+      // trailSnapshot もこの時刻で計算し、次フレーム(nextTime)の点とは履歴として分離する。
+      const currentTime = state.time
+      const nextTime = state.time + delta
+
+      if (!shouldSampleTrail(state.lastTrailSampleTime, currentTime)) {
+        return { time: nextTime }
+      }
+
+      return {
+        time: nextTime,
+        trails: appendTrailSnapshot(state.trails, trailSnapshot, currentTime, state.trailDuration),
+        lastTrailSampleTime: currentTime,
+      }
+    }),
   clearTrails: () => set({ trails: {}, lastTrailSampleTime: null }),
   saveExperimentRun: (title, note) =>
     set((state) => {
       const run: ExperimentRun = {
+        version: 1,
         id: createRunId(),
         createdAt: new Date().toISOString(),
         title: title.trim() || '無題の観測',
