@@ -47,6 +47,8 @@ function isValidExperimentRun(item: unknown): item is ExperimentRun {
   const version = run.version
   // version===1 は現行、version==null は legacy(v0)として許可。その他は未対応として除外。
   const isSupportedVersion = version === 1 || version == null
+  // points は v0 レガシーデータの後方互換フィールド。新規保存データには含まれないが、
+  // 旧データを読み込む際に壊れた points が混入しないよう検証する。
   const hasValidPoints =
     run.points == null || (Array.isArray(run.points) && run.points.every(isValidFrequencyPoint))
 
