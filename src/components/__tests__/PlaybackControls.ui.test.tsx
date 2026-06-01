@@ -1,15 +1,11 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { beforeEach, describe, expect, it } from 'vitest'
 
 import { useHarmonicStore } from '../../store/useHarmonicStore'
 import { PlaybackControls } from '../PlaybackControls'
 
 describe('PlaybackControls UI', () => {
-  afterEach(() => {
-    cleanup()
-  })
-
   beforeEach(() => {
     useHarmonicStore.setState({
       baseFrequency: 110,
