@@ -40,5 +40,9 @@ export type ExperimentRun = {
   playbackSpeed: number
   displayScale: number
   trailDuration: number
+  /**
+   * レガシー後方互換フィールド（v0 保存データのみ）。
+   * 新規保存では絶対に含まれない。読み込み時の旧データ検証にのみ使用する。
+   */
   points?: FrequencyPoint[]
 }
