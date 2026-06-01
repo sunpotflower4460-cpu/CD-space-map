@@ -124,11 +124,16 @@
   color: rgba(167, 188, 232, 0.65);
   font-size: 0.8rem;
   padding: 0.35rem 0.65rem;
-  min-height: 36px;
+  min-height: 44px;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
   font-family: inherit;
   letter-spacing: 0.02em;
+}
+
+.point-readout {
+  border-top: 1px solid rgba(167, 188, 232, 0.12);
+  padding-top: 0.55rem;
 }
 
 .param-btn:hover {

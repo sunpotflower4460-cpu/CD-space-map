@@ -5,6 +5,7 @@ import { ObservationNotes } from './components/ObservationNotes'
 import { ObservationRulesPanel } from './components/ObservationRulesPanel'
 import { PlaybackControls } from './components/PlaybackControls'
 import { ParameterPanel } from './components/ParameterPanel'
+import { PointReadoutPanel } from './components/PointReadoutPanel'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
       <div className="controls-panel">
         <PlaybackControls />
         <ParameterPanel />
+        <PointReadoutPanel />
         <ObservationRulesPanel />
         <ObservationNotes />
         <ExperimentList />
