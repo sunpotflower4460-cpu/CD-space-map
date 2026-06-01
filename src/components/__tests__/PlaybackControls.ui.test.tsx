@@ -15,6 +15,7 @@ describe('PlaybackControls UI', () => {
       playbackSpeed: 1,
       displayScale: 440,
       trailDuration: 3,
+      selectedPointId: null,
       trails: { p1: [{ pointId: 'p1', time: 1, position: [1, 2, 3] }] },
       lastTrailSampleTime: 1,
       experiments: [],

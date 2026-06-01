@@ -1,6 +1,6 @@
 import { Canvas, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 
 import { getFrequencyPointPosition } from '../core/frequencyMath'
 import { generateDiskLayers, getLayerBounds } from '../core/layerLayout'
@@ -58,6 +58,20 @@ export function HarmonicScene() {
   const displayScale = useHarmonicStore((state) => state.displayScale)
   const trails = useHarmonicStore((state) => state.trails)
   const trailDuration = useHarmonicStore((state) => state.trailDuration)
+  const selectedPointId = useHarmonicStore((state) => state.selectedPointId)
+  const selectPoint = useHarmonicStore((state) => state.selectPoint)
+  const deselectPoint = useHarmonicStore((state) => state.deselectPoint)
+
+  const handleSelect = useCallback(
+    (id: string | null) => {
+      if (id === null) {
+        deselectPoint()
+      } else {
+        selectPoint(id)
+      }
+    },
+    [selectPoint, deselectPoint],
+  )
 
   const points = useMemo(
     () => createFrequencyPoints(storeBaseFrequency, preset),
@@ -93,7 +107,10 @@ export function HarmonicScene() {
 
   return (
     <div className="harmonic-canvas" aria-label="CD星図 3D scene">
-      <Canvas camera={{ position: [3.9, 2.6, 4.6], fov: 42 }}>
+      <Canvas
+        camera={{ position: [3.9, 2.6, 4.6], fov: 42 }}
+        onPointerMissed={() => deselectPoint()}
+      >
         <SceneTicker renderPoints={renderPoints} />
         <color attach="background" args={['#040814']} />
         <fog attach="fog" args={['#040814', 7, 14]} />
@@ -126,7 +143,12 @@ export function HarmonicScene() {
                 currentTime={time}
                 trailDuration={trailDuration}
               />
-              <FrequencyPointMesh point={point} position={position} />
+              <FrequencyPointMesh
+                point={point}
+                position={position}
+                isSelected={selectedPointId === point.id}
+                onSelect={handleSelect}
+              />
             </group>
           )
         })}

@@ -26,6 +26,7 @@ export type AppState = {
   playbackSpeed: number
   displayScale: number
   trailDuration: number
+  selectedPointId: string | null
 }
 
 export type ExperimentRun = {
