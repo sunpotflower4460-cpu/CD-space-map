@@ -32,6 +32,8 @@ type HarmonicActions = {
   deleteExperimentRun: (id: string) => void
   loadExperimentRun: (id: string) => void
   exportExperiments: () => void
+  selectPoint: (id: string) => void
+  deselectPoint: () => void
 }
 
 type HarmonicStoreState = AppState & {
@@ -56,6 +58,7 @@ export const useHarmonicStore = create<HarmonicStoreState>((set) => ({
   playbackSpeed: 1,
   displayScale: 440,
   trailDuration: 3,
+  selectedPointId: null,
   trails: {},
   lastTrailSampleTime: null,
   // Start empty; ExperimentList loads from localStorage on mount
@@ -133,4 +136,6 @@ export const useHarmonicStore = create<HarmonicStoreState>((set) => ({
       }
     }),
   exportExperiments: () => exportExperimentsAsJson(),
+  selectPoint: (id) => set({ selectedPointId: id }),
+  deselectPoint: () => set({ selectedPointId: null }),
 }))

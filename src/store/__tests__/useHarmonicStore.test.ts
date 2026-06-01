@@ -14,6 +14,7 @@ describe('useHarmonicStore advanceTick', () => {
       playbackSpeed: 1,
       displayScale: 440,
       trailDuration: 3,
+      selectedPointId: null,
       trails: {},
       lastTrailSampleTime: null,
       experiments: [],
@@ -57,5 +58,44 @@ describe('useHarmonicStore advanceTick', () => {
 
     expect(state.tick).toBeUndefined()
     expect(state.recordTrailSnapshot).toBeUndefined()
+  })
+})
+
+describe('useHarmonicStore 選択状態', () => {
+  beforeEach(() => {
+    useHarmonicStore.setState({
+      baseFrequency: 110,
+      preset: 'harmonics',
+      isPlaying: false,
+      time: 0,
+      playbackSpeed: 1,
+      displayScale: 440,
+      trailDuration: 3,
+      selectedPointId: null,
+      trails: {},
+      lastTrailSampleTime: null,
+      experiments: [],
+    })
+  })
+
+  it('初期状態では selectedPointId が null である', () => {
+    expect(useHarmonicStore.getState().selectedPointId).toBeNull()
+  })
+
+  it('selectPoint で selectedPointId が更新される', () => {
+    useHarmonicStore.getState().selectPoint('p1')
+    expect(useHarmonicStore.getState().selectedPointId).toBe('p1')
+  })
+
+  it('別の点を selectPoint すると selectedPointId が切り替わる', () => {
+    useHarmonicStore.getState().selectPoint('p1')
+    useHarmonicStore.getState().selectPoint('p2')
+    expect(useHarmonicStore.getState().selectedPointId).toBe('p2')
+  })
+
+  it('deselectPoint で selectedPointId が null に戻る', () => {
+    useHarmonicStore.getState().selectPoint('p1')
+    useHarmonicStore.getState().deselectPoint()
+    expect(useHarmonicStore.getState().selectedPointId).toBeNull()
   })
 })
